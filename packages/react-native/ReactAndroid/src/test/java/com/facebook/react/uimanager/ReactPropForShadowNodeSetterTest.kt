@@ -30,126 +30,125 @@ import org.robolectric.annotation.Config
 /** Test [ReactProp] and [ReactPropGroup] annotations for [ReactShadowNode] */
 @RunWith(RobolectricTestRunner::class)
 @Config(
-    shadows = [ShadowYogaConfigProvider::class, ShadowSoLoader::class, ShadowYogaNodeFactory::class]
-)
+    shadows =
+        [ShadowYogaConfigProvider::class, ShadowSoLoader::class, ShadowYogaNodeFactory::class])
 class ReactPropForShadowNodeSetterTest {
-    interface ViewManagerUpdatesReceiver {
-        fun onBooleanSetterCalled(value: Boolean)
+  interface ViewManagerUpdatesReceiver {
+    fun onBooleanSetterCalled(value: Boolean)
 
-        fun onIntSetterCalled(value: Int)
+    fun onIntSetterCalled(value: Int)
 
-        fun onDoubleSetterCalled(value: Double)
+    fun onDoubleSetterCalled(value: Double)
 
-        fun onFloatSetterCalled(value: Float)
+    fun onFloatSetterCalled(value: Float)
 
-        fun onStringSetterCalled(value: String?)
+    fun onStringSetterCalled(value: String?)
 
-        fun onBoxedBooleanSetterCalled(value: Boolean?)
+    fun onBoxedBooleanSetterCalled(value: Boolean?)
 
-        fun onBoxedIntSetterCalled(value: Int?)
+    fun onBoxedIntSetterCalled(value: Int?)
 
-        fun onArraySetterCalled(value: ReadableArray?)
+    fun onArraySetterCalled(value: ReadableArray?)
 
-        fun onMapSetterCalled(value: ReadableMap?)
+    fun onMapSetterCalled(value: ReadableMap?)
 
-        fun onFloatGroupPropSetterCalled(index: Int, value: Float)
+    fun onFloatGroupPropSetterCalled(index: Int, value: Float)
 
-        fun onIntGroupPropSetterCalled(index: Int, value: Int)
+    fun onIntGroupPropSetterCalled(index: Int, value: Int)
 
-        fun onBoxedIntGroupPropSetterCalled(index: Int, value: Int?)
+    fun onBoxedIntGroupPropSetterCalled(index: Int, value: Int?)
+  }
+
+  private inner class ShadowViewUnderTest(
+      val viewManagerUpdatesReceiver: ViewManagerUpdatesReceiver
+  ) : ReactShadowNodeImpl() {
+
+    init {
+      setViewClassName("ShadowViewUnderTest")
+      val context = ReactApplicationContext(RuntimeEnvironment.getApplication())
+      setThemedContext(ThemedReactContext(context, context, null, -1))
     }
 
-    private inner class ShadowViewUnderTest(
-        val viewManagerUpdatesReceiver: ViewManagerUpdatesReceiver
-    ) : ReactShadowNodeImpl() {
-
-        init {
-            setViewClassName("ShadowViewUnderTest")
-            val context = ReactApplicationContext(RuntimeEnvironment.getApplication())
-            setThemedContext(ThemedReactContext(context, context, null, -1))
-        }
-
-        @ReactProp(name = "boolProp")
-        fun setBoolProp(value: Boolean) {
-            viewManagerUpdatesReceiver.onBooleanSetterCalled(value)
-        }
-
-        @ReactProp(name = "stringProp")
-        fun setStringProp(value: String?) {
-            viewManagerUpdatesReceiver.onStringSetterCalled(value)
-        }
-
-        @ReactProp(name = "boxedIntProp")
-        fun setBoxedIntProp(value: Int?) {
-            viewManagerUpdatesReceiver.onBoxedIntSetterCalled(value)
-        }
-
-        @ReactPropGroup(names = ["floatGroupPropFirst", "floatGroupPropSecond"])
-        fun setFloatGroupProp(index: Int, value: Float) {
-            viewManagerUpdatesReceiver.onFloatGroupPropSetterCalled(index, value)
-        }
+    @ReactProp(name = "boolProp")
+    fun setBoolProp(value: Boolean) {
+      viewManagerUpdatesReceiver.onBooleanSetterCalled(value)
     }
 
-    private lateinit var shadowView: ShadowViewUnderTest
-    private lateinit var updatesReceiverMock: ViewManagerUpdatesReceiver
-
-    @Before
-    fun setup() {
-        updatesReceiverMock = mock(ViewManagerUpdatesReceiver::class.java)
-        shadowView = ShadowViewUnderTest(updatesReceiverMock)
+    @ReactProp(name = "stringProp")
+    fun setStringProp(value: String?) {
+      viewManagerUpdatesReceiver.onStringSetterCalled(value)
     }
 
-    @Test
-    fun testBooleanSetter() {
-        shadowView.updateProperties(buildStyles("boolProp", true))
-        verify(updatesReceiverMock).onBooleanSetterCalled(true)
-        verifyNoMoreInteractions(updatesReceiverMock)
-        reset(updatesReceiverMock)
-
-        shadowView.updateProperties(buildStyles("boolProp", false))
-        verify(updatesReceiverMock).onBooleanSetterCalled(false)
-        verifyNoMoreInteractions(updatesReceiverMock)
-        reset(updatesReceiverMock)
-
-        shadowView.updateProperties(buildStyles("boolProp", null))
-        verify(updatesReceiverMock).onBooleanSetterCalled(false)
-        verifyNoMoreInteractions(updatesReceiverMock)
-        reset(updatesReceiverMock)
+    @ReactProp(name = "boxedIntProp")
+    fun setBoxedIntProp(value: Int?) {
+      viewManagerUpdatesReceiver.onBoxedIntSetterCalled(value)
     }
 
-    @Test
-    fun testStringSetter() {
-        shadowView.updateProperties(buildStyles("stringProp", "someRandomString"))
-        verify(updatesReceiverMock).onStringSetterCalled("someRandomString")
-        verifyNoMoreInteractions(updatesReceiverMock)
-        reset(updatesReceiverMock)
-
-        shadowView.updateProperties(buildStyles("stringProp", null))
-        verify(updatesReceiverMock).onStringSetterCalled(null)
-        verifyNoMoreInteractions(updatesReceiverMock)
-        reset(updatesReceiverMock)
+    @ReactPropGroup(names = ["floatGroupPropFirst", "floatGroupPropSecond"])
+    fun setFloatGroupProp(index: Int, value: Float) {
+      viewManagerUpdatesReceiver.onFloatGroupPropSetterCalled(index, value)
     }
+  }
 
-    @Test
-    fun testFloatGroupSetter() {
-        shadowView.updateProperties(buildStyles("floatGroupPropFirst", 11.0))
-        verify(updatesReceiverMock).onFloatGroupPropSetterCalled(0, 11.0f)
-        verifyNoMoreInteractions(updatesReceiverMock)
-        reset(updatesReceiverMock)
+  private lateinit var shadowView: ShadowViewUnderTest
+  private lateinit var updatesReceiverMock: ViewManagerUpdatesReceiver
 
-        shadowView.updateProperties(buildStyles("floatGroupPropSecond", -111.0))
-        verify(updatesReceiverMock).onFloatGroupPropSetterCalled(1, -111.0f)
-        verifyNoMoreInteractions(updatesReceiverMock)
-        reset(updatesReceiverMock)
+  @Before
+  fun setup() {
+    updatesReceiverMock = mock(ViewManagerUpdatesReceiver::class.java)
+    shadowView = ShadowViewUnderTest(updatesReceiverMock)
+  }
 
-        shadowView.updateProperties(buildStyles("floatGroupPropSecond", null))
-        verify(updatesReceiverMock).onFloatGroupPropSetterCalled(1, 0.0f)
-        verifyNoMoreInteractions(updatesReceiverMock)
-        reset(updatesReceiverMock)
-    }
+  @Test
+  fun testBooleanSetter() {
+    shadowView.updateProperties(buildStyles("boolProp", true))
+    verify(updatesReceiverMock).onBooleanSetterCalled(true)
+    verifyNoMoreInteractions(updatesReceiverMock)
+    reset(updatesReceiverMock)
 
-    companion object {
-        fun buildStyles(vararg keysAndValues: Any?) =
-            ReactStylesDiffMap(JavaOnlyMap.of(*keysAndValues))
-    }
+    shadowView.updateProperties(buildStyles("boolProp", false))
+    verify(updatesReceiverMock).onBooleanSetterCalled(false)
+    verifyNoMoreInteractions(updatesReceiverMock)
+    reset(updatesReceiverMock)
+
+    shadowView.updateProperties(buildStyles("boolProp", null))
+    verify(updatesReceiverMock).onBooleanSetterCalled(false)
+    verifyNoMoreInteractions(updatesReceiverMock)
+    reset(updatesReceiverMock)
+  }
+
+  @Test
+  fun testStringSetter() {
+    shadowView.updateProperties(buildStyles("stringProp", "someRandomString"))
+    verify(updatesReceiverMock).onStringSetterCalled("someRandomString")
+    verifyNoMoreInteractions(updatesReceiverMock)
+    reset(updatesReceiverMock)
+
+    shadowView.updateProperties(buildStyles("stringProp", null))
+    verify(updatesReceiverMock).onStringSetterCalled(null)
+    verifyNoMoreInteractions(updatesReceiverMock)
+    reset(updatesReceiverMock)
+  }
+
+  @Test
+  fun testFloatGroupSetter() {
+    shadowView.updateProperties(buildStyles("floatGroupPropFirst", 11.0))
+    verify(updatesReceiverMock).onFloatGroupPropSetterCalled(0, 11.0f)
+    verifyNoMoreInteractions(updatesReceiverMock)
+    reset(updatesReceiverMock)
+
+    shadowView.updateProperties(buildStyles("floatGroupPropSecond", -111.0))
+    verify(updatesReceiverMock).onFloatGroupPropSetterCalled(1, -111.0f)
+    verifyNoMoreInteractions(updatesReceiverMock)
+    reset(updatesReceiverMock)
+
+    shadowView.updateProperties(buildStyles("floatGroupPropSecond", null))
+    verify(updatesReceiverMock).onFloatGroupPropSetterCalled(1, 0.0f)
+    verifyNoMoreInteractions(updatesReceiverMock)
+    reset(updatesReceiverMock)
+  }
+
+  companion object {
+    fun buildStyles(vararg keysAndValues: Any?) = ReactStylesDiffMap(JavaOnlyMap.of(*keysAndValues))
+  }
 }
